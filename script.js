@@ -1,5 +1,5 @@
 /**
- * OSINT Investigator v3.0 — script.js
+ * OSINT Investigator v3.1 — script.js
  * Canadian Intelligence Platform
  * Modules: Constants | UI | Tabs | Search | Corporate | Technical | Username | Email | Phone | Geo | History | Coverage | Workspace | Init
  */
@@ -97,7 +97,7 @@ const SOURCES = {
 
   // ── Media Intelligence ────────────────────────────────────
   'reuters': ({ shortName }) =>
-    `https://www.reuters.com/search/news?blob=${encodeURIComponent(shortName)}`,
+    `https://www.reuters.com/site-search/?query=${encodeURIComponent(shortName)}`,
 
   'bing-news': ({ shortName }) =>
     `https://www.bing.com/news/search?q=${encodeURIComponent(`"${shortName}"`)}`,
@@ -108,7 +108,7 @@ const SOURCES = {
  */
 const CORP_SOURCES = {
   'fed-corp': (name) =>
-    `https://www.ic.gc.ca/app/scr/cc/CorporationsCanada/fdrlCrpSrch.html?search=${encodeURIComponent(name)}`,
+    `https://ised-isde.canada.ca/cc/lgcy/fdrl/srch/index?search=${encodeURIComponent(name)}&lang=eng`,
 
   'ontario-biz': (name) =>
     name
@@ -151,8 +151,8 @@ const TECH_SOURCES = {
   'ssl-cert':            (d) => `https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(d)}`,
   // Website Intelligence
   'internet-archive':    (d) => `https://web.archive.org/web/*/${encodeURIComponent(d)}`,
-  'cached-google':       (d) => `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(d)}`,
-  'cached-bing':         (d) => `https://www.bing.com/search?q=cached:${encodeURIComponent(d)}`,
+  'cached-google':       (d) => `https://cachedview.nl/`,
+  'cached-bing':         (d) => `https://archive.org/wayback/available?url=${encodeURIComponent(d)}`,
   'page-source':         (d) => `view-source:https://${d}`,
   'page-speed':          (d) => `https://pagespeed.web.dev/report?url=https%3A%2F%2F${encodeURIComponent(d)}`,
   'website-screenshot':  (d) => `https://www.screenshotmachine.com/?url=https://${encodeURIComponent(d)}`,
