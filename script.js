@@ -1,7 +1,7 @@
 /**
- * OSINT Investigator v2.0 — script.js
+ * OSINT Investigator v3.0 — script.js
  * Canadian Intelligence Platform
- * Modules: Constants | UI | Tabs | Search | Corporate | History | Workspace | Init
+ * Modules: Constants | UI | Tabs | Search | Corporate | Technical | Username | Email | Phone | Geo | History | Coverage | Workspace | Init
  */
 
 'use strict';
@@ -12,6 +12,7 @@
 
 const LS_HISTORY_KEY   = 'osint_search_history';
 const LS_WORKSPACE_KEY = 'osint_workspace_';
+const LS_COVERAGE_KEY  = 'osint_module_coverage';
 const MAX_HISTORY      = 15;
 
 /**
@@ -24,7 +25,7 @@ const SOURCES = {
     `https://www.canlii.org/en/#search/text=${encodeURIComponent(fullName)}`,
 
   'ontario-courts': () =>
-    'https://www.ontariocourts.ca/scj/en/sittings/',
+    'https://www.ontariocourts.ca/ocj/scheduling-and-court-lists/',
 
   'google-exact': ({ fullName }) =>
     `https://www.google.com/search?q=${encodeURIComponent(`"${fullName}"`)}`,
@@ -125,6 +126,98 @@ const CORP_SOURCES = {
 
   'opencorporates': (name) =>
     `https://opencorporates.com/companies?q=${encodeURIComponent(name)}&jurisdiction_code=ca`,
+};
+
+/* ── Technical Intelligence Sources (domain/IP) ─────────────── */
+const TECH_SOURCES = {
+  // Domain Intelligence
+  'whois':               (d) => `https://whois.domaintools.com/${encodeURIComponent(d)}`,
+  'dns-lookup':          (d) => `https://mxtoolbox.com/DNSLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'reverse-dns':         (d) => `https://mxtoolbox.com/ReverseLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'ip-lookup':           (d) => `https://www.ipaddress.com/search/?q=${encodeURIComponent(d)}`,
+  'reverse-ip':          (d) => `https://viewdns.info/reverseip/?host=${encodeURIComponent(d)}&output=html`,
+  'asn-lookup':          (d) => `https://mxtoolbox.com/asn.aspx?domain=${encodeURIComponent(d)}`,
+  'mx-records':          (d) => `https://mxtoolbox.com/MXLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'ns-records':          (d) => `https://mxtoolbox.com/NSLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'txt-records':         (d) => `https://mxtoolbox.com/TXTLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'aaaa-records':        (d) => `https://mxtoolbox.com/AAAALookup.aspx?domain=${encodeURIComponent(d)}`,
+  'a-records':           (d) => `https://mxtoolbox.com/DNSLookup.aspx?domain=${encodeURIComponent(d)}`,
+  'cert-transparency':   (d) => `https://crt.sh/?q=%.${encodeURIComponent(d)}`,
+  'subdomain-discovery': (d) => `https://dnsdumpster.com/`,
+  'tech-stack':          (d) => `https://www.wappalyzer.com/lookup/${encodeURIComponent(d)}/`,
+  'website-headers':     (d) => `https://securityheaders.com/?q=${encodeURIComponent(d)}&followRedirects=on`,
+  'robots-txt':          (d) => `https://${d}/robots.txt`,
+  'sitemap-xml':         (d) => `https://${d}/sitemap.xml`,
+  'ssl-cert':            (d) => `https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(d)}`,
+  // Website Intelligence
+  'internet-archive':    (d) => `https://web.archive.org/web/*/${encodeURIComponent(d)}`,
+  'cached-google':       (d) => `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(d)}`,
+  'cached-bing':         (d) => `https://www.bing.com/search?q=cached:${encodeURIComponent(d)}`,
+  'page-source':         (d) => `view-source:https://${d}`,
+  'page-speed':          (d) => `https://pagespeed.web.dev/report?url=https%3A%2F%2F${encodeURIComponent(d)}`,
+  'website-screenshot':  (d) => `https://www.screenshotmachine.com/?url=https://${encodeURIComponent(d)}`,
+  'tech-detection':      (d) => `https://builtwith.com/${encodeURIComponent(d)}`,
+  'hosting-provider':    (d) => `https://www.whoishostingthis.com/results/${encodeURIComponent(d)}/`,
+  'cdn-detection':       (d) => `https://www.cdnplanet.com/tools/cdnfinder/#${encodeURIComponent(d)}`,
+  'http-headers':        (d) => `https://httpstatus.io/${encodeURIComponent(d)}`,
+  'response-headers':    (d) => `https://headers.cloxy.net/?url=https://${encodeURIComponent(d)}`,
+  // Digital Documents
+  'domain-pdf':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:pdf`,
+  'domain-doc':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:doc`,
+  'domain-docx':         (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:docx`,
+  'domain-ppt':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:ppt`,
+  'domain-pptx':         (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:pptx`,
+  'domain-xls':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:xls`,
+  'domain-xlsx':         (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:xlsx`,
+  'domain-csv':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:csv`,
+  'gov-pdfs':            (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+filetype:pdf+government`,
+  'public-reports':      (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+report+filetype:pdf`,
+  'court-docs':          (d) => `https://www.google.com/search?q=site:${encodeURIComponent(d)}+court+filetype:pdf`,
+};
+
+/* ── Username Sources ─────────────────────────────────────── */
+const USERNAME_SOURCES = {
+  'u-github':    (u) => `https://github.com/${encodeURIComponent(u)}`,
+  'u-reddit':    (u) => `https://www.reddit.com/user/${encodeURIComponent(u)}`,
+  'u-tiktok':    (u) => `https://www.tiktok.com/@${encodeURIComponent(u)}`,
+  'u-instagram': (u) => `https://www.instagram.com/${encodeURIComponent(u)}/`,
+  'u-x':         (u) => `https://twitter.com/${encodeURIComponent(u)}`,
+  'u-youtube':   (u) => `https://www.youtube.com/@${encodeURIComponent(u)}`,
+  'u-pinterest': (u) => `https://www.pinterest.com/${encodeURIComponent(u)}/`,
+  'u-telegram':  (u) => `https://t.me/${encodeURIComponent(u)}`,
+  'u-threads':   (u) => `https://www.threads.net/@${encodeURIComponent(u)}`,
+  'u-mastodon':  (u) => `https://mastodon.social/@${encodeURIComponent(u)}`,
+};
+
+/* ── Email Sources ────────────────────────────────────────── */
+const EMAIL_SOURCES = {
+  'email-search':   (e) => `https://www.google.com/search?q=${encodeURIComponent(`"${e}"`)}`,
+  'email-gravatar': (e) => `https://www.google.com/search?q=${encodeURIComponent(`gravatar "${e}"`)}`,
+  'email-hibp':     (e) => `https://haveibeenpwned.com/account/${encodeURIComponent(e)}`,
+  'email-headers':  ()  => `https://toolbox.googleapps.com/apps/messageheader/`,
+  'email-domain':   (e) => { const d = e.includes('@') ? e.split('@')[1] : e; return `https://mxtoolbox.com/EmailHeaders.aspx?domain=${encodeURIComponent(d)}`; },
+  'email-mx':       (e) => { const d = e.includes('@') ? e.split('@')[1] : e; return `https://mxtoolbox.com/MXLookup.aspx?domain=${encodeURIComponent(d)}`; },
+  'email-spf':      (e) => { const d = e.includes('@') ? e.split('@')[1] : e; return `https://mxtoolbox.com/spf.aspx?domain=${encodeURIComponent(d)}`; },
+  'email-dmarc':    (e) => { const d = e.includes('@') ? e.split('@')[1] : e; return `https://mxtoolbox.com/dmarc.aspx?domain=${encodeURIComponent(d)}`; },
+  'email-dkim':     (e) => { const d = e.includes('@') ? e.split('@')[1] : e; return `https://mxtoolbox.com/dkim.aspx?domain=${encodeURIComponent(d)}`; },
+};
+
+/* ── Phone Sources ────────────────────────────────────────── */
+const PHONE_SOURCES = {
+  'phone-reverse':  (p) => `https://www.google.com/search?q=${encodeURIComponent(`"${p}"`)}`,
+  'phone-area':     (p) => `https://www.google.com/search?q=${encodeURIComponent(`area+code+${p}`)}`,
+  'phone-carrier':  ()  => `https://www.carrierlookup.com/`,
+  'phone-country':  (p) => `https://www.google.com/search?q=${encodeURIComponent(`country+code+${p}+phone`)}`,
+};
+
+/* ── Geospatial Sources ───────────────────────────────────── */
+const GEO_SOURCES = {
+  'geo-google-maps': (q) => `https://www.google.com/maps/search/${encodeURIComponent(q)}`,
+  'geo-street-view': (q) => `https://www.google.com/maps?layer=c&q=${encodeURIComponent(q)}`,
+  'geo-osm':         (q) => `https://www.openstreetmap.org/search?query=${encodeURIComponent(q)}`,
+  'geo-satellite':   (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}&maptype=satellite`,
+  'geo-postal':      (q) => `https://www.google.com/search?q=${encodeURIComponent(`postal+code+${q}`)}`,
+  'geo-coordinates': (q) => `https://www.google.com/maps/search/${encodeURIComponent(q)}`,
 };
 
 /** Sources included in "Open All Searches" */
@@ -331,6 +424,9 @@ function openSearch(sourceKey, triggerBtn) {
   showSpinner();
   if (triggerBtn) flashBtn(triggerBtn);
 
+  const module = getModuleFromBtn(triggerBtn);
+  if (module) markModuleUsed(module);
+
   const url = urlFn(subject);
   window.open(url, '_blank', 'noopener,noreferrer');
   saveToHistory({ first, middle, last, province });
@@ -362,6 +458,62 @@ function openAllSearches() {
 
 
 /* ════════════════════════════════════════════════════════════
+   MODULE COVERAGE TRACKING
+   ════════════════════════════════════════════════════════════ */
+
+function getModuleFromBtn(btn) {
+  if (!btn) return null;
+  const pane = btn.closest('.tab-pane');
+  if (!pane) return null;
+  return pane.id.replace('tab-', '');
+}
+
+function markModuleUsed(module) {
+  if (!module) return;
+  let coverage = {};
+  try { coverage = JSON.parse(localStorage.getItem(LS_COVERAGE_KEY) || '{}'); } catch {}
+  coverage[module] = true;
+  localStorage.setItem(LS_COVERAGE_KEY, JSON.stringify(coverage));
+}
+
+function renderCoverageWidget() {
+  const container = document.getElementById('coverage-widget');
+  if (!container) return;
+
+  let coverage = {};
+  try { coverage = JSON.parse(localStorage.getItem(LS_COVERAGE_KEY) || '{}'); } catch {}
+
+  const modules = [
+    { key: 'people',    label: 'People Intel' },
+    { key: 'corporate', label: 'Corporate Intel' },
+    { key: 'legal',     label: 'Legal Intel' },
+    { key: 'media',     label: 'Media Intel' },
+    { key: 'technical', label: 'Technical Intel' },
+    { key: 'open-web',  label: 'Open Web Intel' },
+  ];
+
+  const checked = modules.filter(m => coverage[m.key]).length;
+  const pct     = modules.length ? Math.round((checked / modules.length) * 100) : 0;
+
+  container.innerHTML = `
+    <div class="coverage-items">
+      ${modules.map(m => `
+        <div class="coverage-item${coverage[m.key] ? ' coverage-checked' : ''}">
+          <span class="coverage-check">${coverage[m.key] ? '✔' : '○'}</span>
+          <span class="coverage-label">${m.label}</span>
+        </div>`).join('')}
+    </div>
+    <div class="coverage-bar-row">
+      <span class="coverage-bar-label">Overall Coverage</span>
+      <span class="coverage-pct">${pct}%</span>
+    </div>
+    <div class="coverage-bar-track">
+      <div class="coverage-bar-fill" style="width:${pct}%"></div>
+    </div>`;
+}
+
+
+/* ════════════════════════════════════════════════════════════
    SEARCH — CORPORATE (company name based)
    ════════════════════════════════════════════════════════════ */
 
@@ -377,6 +529,7 @@ function openCorporateSearch(sourceKey, triggerBtn) {
 
   showSpinner();
   if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('corporate');
 
   const url = urlFn(name);
   window.open(url, '_blank', 'noopener,noreferrer');
@@ -386,6 +539,103 @@ function openCorporateSearch(sourceKey, triggerBtn) {
   }
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — TECHNICAL (domain/IP based)
+   ════════════════════════════════════════════════════════════ */
+
+function openTechSearch(sourceKey, triggerBtn) {
+  const domain = (document.getElementById('domain-input') || {}).value.trim()
+    .replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+
+  const urlFn = TECH_SOURCES[sourceKey];
+  if (!urlFn) { showToast(`Unknown source: ${sourceKey}`, 'error'); return; }
+
+  if (!domain && !['subdomain-discovery', 'phone-carrier'].includes(sourceKey)) {
+    showToast('Enter a domain or IP address first.', 'error'); return;
+  }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('technical');
+
+  window.open(urlFn(domain), '_blank', 'noopener,noreferrer');
+}
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — USERNAME
+   ════════════════════════════════════════════════════════════ */
+
+function openUsernameSearch(sourceKey, triggerBtn) {
+  const username = (document.getElementById('username-input') || {}).value.trim();
+  const urlFn    = USERNAME_SOURCES[sourceKey];
+  if (!urlFn) { showToast(`Unknown source: ${sourceKey}`, 'error'); return; }
+  if (!username) { showToast('Enter a username first.', 'error'); return; }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('technical');
+
+  window.open(urlFn(username), '_blank', 'noopener,noreferrer');
+}
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — EMAIL
+   ════════════════════════════════════════════════════════════ */
+
+function openEmailSearch(sourceKey, triggerBtn) {
+  const email = (document.getElementById('email-input') || {}).value.trim();
+  const urlFn = EMAIL_SOURCES[sourceKey];
+  if (!urlFn) { showToast(`Unknown source: ${sourceKey}`, 'error'); return; }
+
+  // email-headers doesn't need an email
+  if (!email && sourceKey !== 'email-headers') {
+    showToast('Enter an email address first.', 'error'); return;
+  }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('technical');
+
+  window.open(urlFn(email), '_blank', 'noopener,noreferrer');
+}
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — PHONE
+   ════════════════════════════════════════════════════════════ */
+
+function openPhoneSearch(sourceKey, triggerBtn) {
+  const phone = (document.getElementById('phone-input') || {}).value.trim();
+  const urlFn = PHONE_SOURCES[sourceKey];
+  if (!urlFn) { showToast(`Unknown source: ${sourceKey}`, 'error'); return; }
+
+  if (!phone && sourceKey !== 'phone-carrier') {
+    showToast('Enter a phone number first.', 'error'); return;
+  }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('technical');
+
+  window.open(urlFn(phone), '_blank', 'noopener,noreferrer');
+}
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — GEOSPATIAL
+   ════════════════════════════════════════════════════════════ */
+
+function openGeoSearch(sourceKey, triggerBtn) {
+  const query = (document.getElementById('geo-input') || {}).value.trim();
+  const urlFn = GEO_SOURCES[sourceKey];
+  if (!urlFn) { showToast(`Unknown source: ${sourceKey}`, 'error'); return; }
+  if (!query) { showToast('Enter a location first.', 'error'); return; }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+  markModuleUsed('technical');
+
+  window.open(urlFn(query), '_blank', 'noopener,noreferrer');
+}
 
 /* ════════════════════════════════════════════════════════════
    HISTORY MODULE
@@ -499,6 +749,7 @@ function renderDashboard() {
   renderDashboardHistory();
   updateDashboardStats();
   updateSubjectBanners();
+  renderCoverageWidget();
 }
 
 
@@ -676,6 +927,87 @@ document.addEventListener('DOMContentLoaded', () => {
       if (workspaceKey()) saveWorkspace();
     });
   });
+
+  // ── Wire Technical Intelligence buttons ─────────────────────
+  document.querySelectorAll('.search-btn[data-tech-source]').forEach(btn => {
+    btn.addEventListener('click', () => openTechSearch(btn.dataset.techSource, btn));
+  });
+
+  // ── Wire Username buttons ────────────────────────────────────
+  document.querySelectorAll('.search-btn[data-username-source]').forEach(btn => {
+    btn.addEventListener('click', () => openUsernameSearch(btn.dataset.usernameSource, btn));
+  });
+
+  // ── Wire Email buttons ───────────────────────────────────────
+  document.querySelectorAll('.search-btn[data-email-source]').forEach(btn => {
+    if (!btn.disabled) {
+      btn.addEventListener('click', () => openEmailSearch(btn.dataset.emailSource, btn));
+    }
+  });
+
+  // ── Wire Phone buttons ───────────────────────────────────────
+  document.querySelectorAll('.search-btn[data-phone-source]').forEach(btn => {
+    btn.addEventListener('click', () => openPhoneSearch(btn.dataset.phoneSource, btn));
+  });
+
+  // ── Wire Geo buttons ─────────────────────────────────────────
+  document.querySelectorAll('.search-btn[data-geo-source]').forEach(btn => {
+    btn.addEventListener('click', () => openGeoSearch(btn.dataset.geoSource, btn));
+  });
+
+  // ── Tech tab live displays ───────────────────────────────────
+  function makeLiveDisplay(inputId, displayId, placeholder) {
+    const input   = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
+    if (!input || !display) return;
+    const update = () => {
+      const v = input.value.trim();
+      display.textContent  = v || placeholder;
+      display.style.color  = v ? 'var(--accent-light)' : 'var(--text-dim)';
+    };
+    input.addEventListener('input', update);
+    update();
+  }
+  makeLiveDisplay('domain-input',   'domain-display',   '— no domain entered —');
+  makeLiveDisplay('username-input', 'username-display',  '— no username entered —');
+  makeLiveDisplay('email-input',    'email-display',     '— no email entered —');
+  makeLiveDisplay('phone-input',    'phone-display',     '— no phone entered —');
+  makeLiveDisplay('geo-input',      'geo-display',       '— no location entered —');
+
+  // ── Quick Actions panel ──────────────────────────────────────
+  document.querySelectorAll('.qa-panel-btn[data-goto]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabBtns = document.querySelectorAll('.tab-btn[data-tab]');
+      const panes   = document.querySelectorAll('.tab-pane[id^="tab-"]');
+      const target  = btn.dataset.goto;
+      tabBtns.forEach(b => {
+        const active = b.dataset.tab === target;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      panes.forEach(p => p.classList.toggle('active', p.id === `tab-${target}`));
+    });
+  });
+
+  const runFullBtn = document.getElementById('btn-run-full');
+  if (runFullBtn) {
+    runFullBtn.addEventListener('click', () => {
+      const { first, middle, last, province } = getFormValues();
+      if (!first && !last) {
+        showToast('Set a subject in People Intelligence first.', 'error');
+        return;
+      }
+      const subject = buildSubject({ first, middle, last, province });
+      showSpinner();
+      OPEN_ALL_SOURCES.forEach(key => {
+        const urlFn = SOURCES[key];
+        if (urlFn) window.open(urlFn(subject), '_blank', 'noopener,noreferrer');
+      });
+      ['people','corporate','legal','media','open-web'].forEach(m => markModuleUsed(m));
+      showToast(`Full investigation launched.`, 'success');
+      saveToHistory({ first, middle, last, province });
+    });
+  }
 
   // ── Initial render ──────────────────────────────────────────
   renderHistory();
