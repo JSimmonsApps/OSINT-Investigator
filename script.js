@@ -1,7 +1,7 @@
 /**
- * OSINT Investigator — script.js
- * Canadian OSINT Search Platform
- * Organized into: Constants | UI | Search | History | Notes | Init
+ * OSINT Investigator v2.0 — script.js
+ * Canadian Intelligence Platform
+ * Modules: Constants | UI | Tabs | Search | Corporate | History | Workspace | Init
  */
 
 'use strict';
@@ -10,16 +10,16 @@
    CONSTANTS
    ════════════════════════════════════════════════════════════ */
 
-const LS_HISTORY_KEY = 'osint_search_history';
-const LS_NOTES_KEY   = 'osint_notes_';           // suffix: normalised subject key
-const MAX_HISTORY    = 15;
+const LS_HISTORY_KEY   = 'osint_search_history';
+const LS_WORKSPACE_KEY = 'osint_workspace_';
+const MAX_HISTORY      = 15;
 
 /**
- * Search source definitions.
- * Each entry returns a URL given a subject object:
+ * People search sources — take a subject object:
  *   { first, middle, last, province, fullName, shortName }
  */
 const SOURCES = {
+  // ── Primary Legal & News ──────────────────────────────────
   'canlii': ({ fullName }) =>
     `https://www.canlii.org/en/#search/text=${encodeURIComponent(fullName)}`,
 
@@ -44,9 +44,40 @@ const SOURCES = {
   'global-news': ({ shortName }) =>
     `https://globalnews.ca/?s=${encodeURIComponent(shortName)}`,
 
-  // ── Additional OSINT ──────────────────────────────────────
+  // ── Social Intelligence ───────────────────────────────────
+  'linkedin': ({ shortName }) =>
+    `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(shortName)}`,
+
+  'facebook': ({ shortName }) =>
+    `https://www.facebook.com/search/top/?q=${encodeURIComponent(shortName)}`,
+
+  'instagram': ({ shortName }) =>
+    `https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com "${shortName}"`)}`,
+
+  'twitter': ({ shortName }) =>
+    `https://twitter.com/search?q=${encodeURIComponent(`"${shortName}"`)}&f=top`,
+
+  'reddit': ({ shortName }) =>
+    `https://www.reddit.com/search/?q=${encodeURIComponent(`"${shortName}"`)}&type=link`,
+
+  'tiktok': ({ shortName }) =>
+    `https://www.tiktok.com/search?q=${encodeURIComponent(shortName)}`,
+
+  'telegram': ({ shortName }) =>
+    `https://www.google.com/search?q=${encodeURIComponent(`site:t.me "${shortName}"`)}`,
+
+  'github': ({ shortName }) =>
+    `https://github.com/search?q=${encodeURIComponent(shortName)}&type=users`,
+
+  'youtube': ({ shortName }) =>
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(shortName)}`,
+
+  // ── Open Web Intelligence ─────────────────────────────────
   'google': ({ shortName }) =>
     `https://www.google.com/search?q=${encodeURIComponent(`"${shortName}"`)}`,
+
+  'google-advanced': ({ fullName }) =>
+    `https://www.google.com/search?q=${encodeURIComponent(`"${fullName}" Canada`)}`,
 
   'bing': ({ shortName }) =>
     `https://www.bing.com/search?q=${encodeURIComponent(`"${shortName}"`)}`,
@@ -62,6 +93,38 @@ const SOURCES = {
 
   'google-xls': ({ shortName }) =>
     `https://www.google.com/search?q=${encodeURIComponent(`"${shortName}" filetype:xls`)}`,
+
+  // ── Media Intelligence ────────────────────────────────────
+  'reuters': ({ shortName }) =>
+    `https://www.reuters.com/search/news?blob=${encodeURIComponent(shortName)}`,
+
+  'bing-news': ({ shortName }) =>
+    `https://www.bing.com/news/search?q=${encodeURIComponent(`"${shortName}"`)}`,
+};
+
+/**
+ * Corporate registry sources — take a company name string.
+ */
+const CORP_SOURCES = {
+  'fed-corp': (name) =>
+    `https://www.ic.gc.ca/app/scr/cc/CorporationsCanada/fdrlCrpSrch.html?search=${encodeURIComponent(name)}`,
+
+  'ontario-biz': (name) =>
+    name
+      ? `https://www.ontario.ca/page/ontario-business-registry`
+      : 'https://www.ontario.ca/page/ontario-business-registry',
+
+  'quebec-reg': () =>
+    'https://www.registreentreprises.gouv.qc.ca/en/',
+
+  'bc-corp': () =>
+    'https://www.bcregistry.gov.bc.ca/',
+
+  'alberta-corp': () =>
+    'https://www.alberta.ca/search-corporate-registry.aspx',
+
+  'opencorporates': (name) =>
+    `https://opencorporates.com/companies?q=${encodeURIComponent(name)}&jurisdiction_code=ca`,
 };
 
 /** Sources included in "Open All Searches" */
@@ -80,7 +143,6 @@ const OPEN_ALL_SOURCES = [
    UI HELPERS
    ════════════════════════════════════════════════════════════ */
 
-/** Return the current form values. */
 function getFormValues() {
   const first    = document.getElementById('first-name').value.trim();
   const middle   = document.getElementById('middle-name').value.trim();
@@ -89,15 +151,13 @@ function getFormValues() {
   return { first, middle, last, province };
 }
 
-/** Build subject object from individual name parts. */
 function buildSubject({ first, middle, last, province }) {
-  const parts    = [first, middle, last].filter(Boolean);
-  const fullName = parts.join(' ');
+  const parts     = [first, middle, last].filter(Boolean);
+  const fullName  = parts.join(' ');
   const shortName = [first, last].filter(Boolean).join(' ');
   return { first, middle, last, province, fullName, shortName };
 }
 
-/** Populate form fields from a history entry. */
 function populateForm({ first, middle, last, province }) {
   document.getElementById('first-name').value  = first  || '';
   document.getElementById('middle-name').value = middle || '';
@@ -106,14 +166,14 @@ function populateForm({ first, middle, last, province }) {
     document.getElementById('province').value = province;
   }
   updateSubjectDisplay();
-  loadNotesForCurrentSubject();
+  updateSubjectBanners();
+  loadWorkspace();
 }
 
-/** Update the live subject display bar. */
 function updateSubjectDisplay() {
   const { first, middle, last, province } = getFormValues();
   const display = document.getElementById('subject-display');
-  const parts = [first, middle, last].filter(Boolean);
+  const parts   = [first, middle, last].filter(Boolean);
   if (parts.length === 0) {
     display.textContent = '— no subject entered —';
     display.style.color = 'var(--text-dim)';
@@ -123,18 +183,49 @@ function updateSubjectDisplay() {
   }
 }
 
-/** Clear all form inputs. */
+function updateCompanyDisplay() {
+  const name    = (document.getElementById('company-name') || {}).value || '';
+  const display = document.getElementById('company-display');
+  if (!display) return;
+  if (!name.trim()) {
+    display.textContent = '— no company entered —';
+    display.style.color = 'var(--text-dim)';
+  } else {
+    display.textContent = name.trim();
+    display.style.color = 'var(--accent-light)';
+  }
+}
+
+/** Update the "Subject: …" banners on Legal, Media, Open Web tabs */
+function updateSubjectBanners() {
+  const { first, middle, last } = getFormValues();
+  const parts     = [first, middle, last].filter(Boolean);
+  const displayName = parts.length ? parts.join(' ') : '— none set —';
+
+  const ids = ['legal-subject-name', 'media-subject-name', 'web-subject-name'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = displayName;
+  });
+
+  // Dashboard active subject
+  const dashSubject = document.getElementById('dash-active-subject');
+  if (dashSubject) {
+    dashSubject.textContent = parts.length ? parts.join(' ') : 'None';
+  }
+}
+
 function clearForm() {
   document.getElementById('first-name').value  = '';
   document.getElementById('middle-name').value = '';
   document.getElementById('last-name').value   = '';
   document.getElementById('province').value    = 'ON';
   updateSubjectDisplay();
-  loadNotesForCurrentSubject();
+  updateSubjectBanners();
+  loadWorkspace();
   showToast('Form cleared.', 'info');
 }
 
-/** Copy full name to clipboard. */
 function copyFullName() {
   const { first, middle, last } = getFormValues();
   const parts = [first, middle, last].filter(Boolean);
@@ -146,11 +237,9 @@ function copyFullName() {
   navigator.clipboard.writeText(name).then(() => {
     showToast(`Copied: ${name}`, 'success');
   }).catch(() => {
-    // Fallback for clipboard denial
     const ta = document.createElement('textarea');
     ta.value = name;
-    ta.style.position = 'fixed';
-    ta.style.opacity  = '0';
+    ta.style.cssText = 'position:fixed;opacity:0';
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
@@ -159,25 +248,71 @@ function copyFullName() {
   });
 }
 
-/** Show a transient toast message. */
 let _toastTimer = null;
 function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
+  const toast      = document.getElementById('toast');
   toast.textContent = message;
   toast.className   = `toast toast-${type} show`;
   if (_toastTimer) clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => {
-    toast.classList.remove('show');
-  }, 2400);
+  _toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+/** Show the search spinner briefly */
+function showSpinner() {
+  const s = document.getElementById('search-spinner');
+  s.classList.add('active');
+  setTimeout(() => s.classList.remove('active'), 600);
+}
+
+/** Flash a button green after launch */
+function flashBtn(btn) {
+  btn.classList.add('launched');
+  setTimeout(() => btn.classList.remove('launched'), 700);
 }
 
 
 /* ════════════════════════════════════════════════════════════
-   SEARCH GENERATION
+   TAB SYSTEM
    ════════════════════════════════════════════════════════════ */
 
-/** Open a single search source by key. */
-function openSearch(sourceKey) {
+function initTabs() {
+  const tabBtns  = document.querySelectorAll('.tab-btn[data-tab]');
+  const tabPanes = document.querySelectorAll('.tab-pane[id^="tab-"]');
+
+  function switchTab(targetId) {
+    tabBtns.forEach(b => {
+      const active = b.dataset.tab === targetId;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    tabPanes.forEach(p => {
+      p.classList.toggle('active', p.id === `tab-${targetId}`);
+    });
+    // Refresh dashboard stats whenever dashboard is shown
+    if (targetId === 'dashboard') renderDashboard();
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // "Set Subject" / "Change" buttons on banners → jump to People tab
+  document.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', () => switchTab(el.dataset.goto));
+  });
+
+  // Dashboard module card click → switch tab
+  document.querySelectorAll('.dash-card[data-goto]').forEach(card => {
+    card.addEventListener('click', () => switchTab(card.dataset.goto));
+  });
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   SEARCH — PEOPLE (person name based)
+   ════════════════════════════════════════════════════════════ */
+
+function openSearch(sourceKey, triggerBtn) {
   const { first, middle, last, province } = getFormValues();
 
   if (!first && !last) {
@@ -193,14 +328,14 @@ function openSearch(sourceKey) {
     return;
   }
 
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+
   const url = urlFn(subject);
   window.open(url, '_blank', 'noopener,noreferrer');
-
-  // Save to history whenever a search is launched
   saveToHistory({ first, middle, last, province });
 }
 
-/** Open all primary sources simultaneously. */
 function openAllSearches() {
   const { first, middle, last, province } = getFormValues();
 
@@ -211,6 +346,7 @@ function openAllSearches() {
 
   const subject = buildSubject({ first, middle, last, province });
 
+  showSpinner();
   let opened = 0;
   OPEN_ALL_SOURCES.forEach(key => {
     const urlFn = SOURCES[key];
@@ -226,10 +362,35 @@ function openAllSearches() {
 
 
 /* ════════════════════════════════════════════════════════════
+   SEARCH — CORPORATE (company name based)
+   ════════════════════════════════════════════════════════════ */
+
+function openCorporateSearch(sourceKey, triggerBtn) {
+  const companyInput = document.getElementById('company-name');
+  const name = companyInput ? companyInput.value.trim() : '';
+
+  const urlFn = CORP_SOURCES[sourceKey];
+  if (!urlFn) {
+    showToast(`Unknown corporate source: ${sourceKey}`, 'error');
+    return;
+  }
+
+  showSpinner();
+  if (triggerBtn) flashBtn(triggerBtn);
+
+  const url = urlFn(name);
+  window.open(url, '_blank', 'noopener,noreferrer');
+
+  if (name) {
+    showToast(`Searching: ${name}`, 'info');
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
    HISTORY MODULE
    ════════════════════════════════════════════════════════════ */
 
-/** Load raw history array from LocalStorage. */
 function loadHistory() {
   try {
     return JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
@@ -238,16 +399,10 @@ function loadHistory() {
   }
 }
 
-/** Persist history array to LocalStorage. */
 function persistHistory(history) {
   localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history));
 }
 
-/**
- * Save an entry to history.
- * Deduplicates by full name + province (case-insensitive).
- * Keeps the most recent duplicate at the top.
- */
 function saveToHistory({ first, middle, last, province }) {
   const parts    = [first, middle, last].filter(Boolean);
   const fullName = parts.join(' ');
@@ -256,35 +411,31 @@ function saveToHistory({ first, middle, last, province }) {
   const key     = `${fullName.toLowerCase()}|${province}`;
   let   history = loadHistory();
 
-  // Remove existing entry with same key
   history = history.filter(e => {
     const eKey = `${[e.first, e.middle, e.last].filter(Boolean).join(' ').toLowerCase()}|${e.province}`;
     return eKey !== key;
   });
 
-  // Prepend new entry
   history.unshift({ first, middle, last, province, ts: Date.now() });
-
-  // Enforce max length
-  if (history.length > MAX_HISTORY) {
-    history = history.slice(0, MAX_HISTORY);
-  }
+  if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
 
   persistHistory(history);
   renderHistory();
+  renderDashboardHistory();
+  updateDashboardStats();
 }
 
-/** Clear all history. */
 function clearHistory() {
   localStorage.removeItem(LS_HISTORY_KEY);
   renderHistory();
+  renderDashboardHistory();
+  updateDashboardStats();
   showToast('History cleared.', 'info');
 }
 
-/** Render the history list in the DOM. */
-function renderHistory() {
-  const container = document.getElementById('history-list');
-  const history   = loadHistory();
+/** Render history into a given container element */
+function renderHistoryInto(container) {
+  const history = loadHistory();
 
   if (history.length === 0) {
     container.innerHTML = '<div class="history-empty">No recent searches.</div>';
@@ -303,7 +454,6 @@ function renderHistory() {
     `;
   }).join('');
 
-  // Attach click handlers
   container.querySelectorAll('.history-item').forEach(el => {
     el.addEventListener('click', () => {
       const idx   = parseInt(el.dataset.index, 10);
@@ -316,7 +466,16 @@ function renderHistory() {
   });
 }
 
-/** Minimal HTML escape to prevent XSS in history names. */
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  if (container) renderHistoryInto(container);
+}
+
+function renderDashboardHistory() {
+  const container = document.getElementById('history-list-dash');
+  if (container) renderHistoryInto(container);
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -327,48 +486,112 @@ function escapeHtml(str) {
 
 
 /* ════════════════════════════════════════════════════════════
-   NOTES MODULE
+   DASHBOARD
    ════════════════════════════════════════════════════════════ */
 
-/** Build a stable LocalStorage key for the current subject. */
-function notesKeyForSubject() {
+function updateDashboardStats() {
+  const count = loadHistory().length;
+  const el    = document.getElementById('dash-history-count');
+  if (el) el.textContent = count;
+}
+
+function renderDashboard() {
+  renderDashboardHistory();
+  updateDashboardStats();
+  updateSubjectBanners();
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   INVESTIGATION WORKSPACE
+   ════════════════════════════════════════════════════════════ */
+
+function workspaceKey() {
   const { first, middle, last } = getFormValues();
   const name = [first, middle, last].filter(Boolean).join(' ').toLowerCase().replace(/\s+/g, '_');
-  return name ? `${LS_NOTES_KEY}${name}` : null;
+  return name ? `${LS_WORKSPACE_KEY}${name}` : null;
 }
 
-/** Load and display notes for the current subject. */
-function loadNotesForCurrentSubject() {
-  const textarea = document.getElementById('notes-area');
-  const keyEl    = document.getElementById('notes-key');
-  const key      = notesKeyForSubject();
+function loadWorkspace() {
+  const key   = workspaceKey();
+  const keyEl = document.getElementById('notes-key');
 
+  const fields = ['notes-area', 'summary-area', 'next-steps-area'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const statusEl = document.getElementById('case-status');
+  if (statusEl) statusEl.value = '';
+  const createdEl = document.getElementById('meta-created');
+  const updatedEl = document.getElementById('meta-updated');
+  if (createdEl) createdEl.textContent = '—';
+  if (updatedEl) updatedEl.textContent = '—';
+  if (keyEl)     keyEl.textContent = '';
+
+  if (!key) return;
+
+  try {
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    const notesEl      = document.getElementById('notes-area');
+    const summaryEl    = document.getElementById('summary-area');
+    const nextStepsEl  = document.getElementById('next-steps-area');
+
+    if (notesEl)     notesEl.value     = data.notes     || '';
+    if (summaryEl)   summaryEl.value   = data.summary   || '';
+    if (nextStepsEl) nextStepsEl.value = data.nextSteps || '';
+    if (statusEl)    statusEl.value    = data.status    || '';
+
+    if (createdEl) createdEl.textContent = data.created ? formatDate(data.created) : '—';
+    if (updatedEl) updatedEl.textContent = data.updated ? formatDate(data.updated) : '—';
+    if (keyEl)     keyEl.textContent     = `key: ${key.replace(LS_WORKSPACE_KEY, '')}`;
+  } catch {
+    // ignore corrupt data
+  }
+}
+
+function saveWorkspace() {
+  const key = workspaceKey();
   if (!key) {
-    textarea.value = '';
-    keyEl.textContent = '';
+    showToast('Enter a subject name before saving.', 'error');
     return;
   }
 
-  textarea.value    = localStorage.getItem(key) || '';
-  keyEl.textContent = `key: ${key.replace(LS_NOTES_KEY, '')}`;
-}
+  let existing = {};
+  try { existing = JSON.parse(localStorage.getItem(key) || '{}'); } catch {}
 
-/** Save notes for the current subject. */
-function saveNotes() {
-  const textarea = document.getElementById('notes-area');
+  const now  = new Date().toISOString();
+  const data = {
+    notes:     (document.getElementById('notes-area')     || {}).value || '',
+    summary:   (document.getElementById('summary-area')   || {}).value || '',
+    nextSteps: (document.getElementById('next-steps-area')|| {}).value || '',
+    status:    (document.getElementById('case-status')    || {}).value || '',
+    created:   existing.created || now,
+    updated:   now,
+  };
+
+  localStorage.setItem(key, JSON.stringify(data));
+
+  const createdEl = document.getElementById('meta-created');
+  const updatedEl = document.getElementById('meta-updated');
+  if (createdEl) createdEl.textContent = formatDate(data.created);
+  if (updatedEl) updatedEl.textContent = formatDate(data.updated);
+
   const feedback = document.getElementById('save-feedback');
-  const key      = notesKeyForSubject();
-
-  if (!key) {
-    showToast('Enter a subject name before saving notes.', 'error');
-    return;
+  if (feedback) {
+    feedback.textContent = '✓ Workspace saved.';
+    setTimeout(() => { feedback.textContent = ''; }, 2500);
   }
+  showToast('Workspace saved.', 'success');
+}
 
-  localStorage.setItem(key, textarea.value);
-
-  // Brief feedback message
-  feedback.textContent = 'Notes saved.';
-  setTimeout(() => { feedback.textContent = ''; }, 2000);
+function formatDate(iso) {
+  try {
+    return new Date(iso).toLocaleString('en-CA', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  } catch { return iso; }
 }
 
 
@@ -378,12 +601,26 @@ function saveNotes() {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Wire search buttons ────────────────────────────────────
+  // ── Tab system ──────────────────────────────────────────────
+  initTabs();
+
+  // ── Wire ALL people/web/legal/media search buttons ──────────
   document.querySelectorAll('.search-btn[data-source]').forEach(btn => {
-    btn.addEventListener('click', () => openSearch(btn.dataset.source));
+    // Skip corporate buttons — handled separately
+    const isCorp = !!CORP_SOURCES[btn.dataset.source];
+    if (!isCorp) {
+      btn.addEventListener('click', () => openSearch(btn.dataset.source, btn));
+    }
   });
 
-  // ── Wire quick action buttons ──────────────────────────────
+  // ── Wire corporate search buttons ───────────────────────────
+  document.querySelectorAll('.search-btn[data-source]').forEach(btn => {
+    if (CORP_SOURCES[btn.dataset.source]) {
+      btn.addEventListener('click', () => openCorporateSearch(btn.dataset.source, btn));
+    }
+  });
+
+  // ── Quick action buttons ────────────────────────────────────
   document.getElementById('btn-clear-form')
     .addEventListener('click', clearForm);
 
@@ -396,10 +633,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-clear-history')
     .addEventListener('click', clearHistory);
 
-  document.getElementById('btn-save-notes')
-    .addEventListener('click', saveNotes);
+  const dashClear = document.getElementById('btn-clear-history-dash');
+  if (dashClear) dashClear.addEventListener('click', clearHistory);
 
-  // ── Live subject display update ────────────────────────────
+  document.getElementById('btn-save-notes')
+    .addEventListener('click', saveWorkspace);
+
+  // ── Live subject display ────────────────────────────────────
   ['first-name', 'middle-name', 'last-name', 'province'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -409,23 +649,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleNameChange() {
     updateSubjectDisplay();
-    loadNotesForCurrentSubject();
+    updateSubjectBanners();
+    loadWorkspace();
   }
 
-  // ── Enter key triggers Google Exact search ─────────────────
+  // ── Company name live display ───────────────────────────────
+  const companyInput = document.getElementById('company-name');
+  if (companyInput) {
+    companyInput.addEventListener('input', updateCompanyDisplay);
+    companyInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') openCorporateSearch('opencorporates', null);
+    });
+  }
+
+  // ── Enter key on name fields → Google Exact ─────────────────
   ['first-name', 'middle-name', 'last-name'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') openSearch('google-exact');
+      if (e.key === 'Enter') openSearch('google-exact', null);
     });
   });
 
-  // ── Auto-save notes on textarea blur ──────────────────────
-  document.getElementById('notes-area').addEventListener('blur', () => {
-    if (notesKeyForSubject()) saveNotes();
+  // ── Auto-save workspace on textarea blur ────────────────────
+  ['notes-area', 'summary-area', 'next-steps-area'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('blur', () => {
+      if (workspaceKey()) saveWorkspace();
+    });
   });
 
-  // ── Initial render ─────────────────────────────────────────
+  // ── Initial render ──────────────────────────────────────────
   renderHistory();
+  renderDashboard();
   updateSubjectDisplay();
-  loadNotesForCurrentSubject();
+  updateSubjectBanners();
+  loadWorkspace();
 });
