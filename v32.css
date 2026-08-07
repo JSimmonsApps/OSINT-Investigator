@@ -761,6 +761,179 @@
   border-radius: 4px;
 }
 
+/* ── v3.2.1: Toolkit missing layout classes ────────────────── */
+
+/* Outer two-section container (tool list grid + active panel) */
+.toolkit-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Label + input stacked pair */
+.tk-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+/* Checkbox option row */
+.tk-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tk-check-row label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.tk-check-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+  width: 13px;
+  height: 13px;
+}
+
+/* Unified input / select / textarea */
+.tk-input {
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11.5px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color var(--transition);
+  width: 100%;
+  box-sizing: border-box;
+}
+.tk-input:focus { border-color: var(--accent); }
+.tk-input::placeholder { color: var(--text-dim); font-style: italic; }
+textarea.tk-input {
+  resize: vertical;
+  min-height: 70px;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.5;
+}
+select.tk-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8394' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+/* Primary action button (accent red) */
+.tk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+  user-select: none;
+  outline: none;
+  margin-bottom: 8px;
+}
+.tk-btn:hover { background: var(--accent-light); }
+.tk-btn:active { opacity: .85; }
+.tk-btn:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; }
+.tk-btn.tk-btn-sm { font-size: 10px; padding: 5px 10px; margin-bottom: 6px; }
+
+/* Row of side-by-side buttons */
+.tk-btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.tk-btn-row .tk-btn { margin-bottom: 0; }
+
+/* Output area + copy button side by side */
+.tk-output-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.tk-output-wrap .tk-output {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+/* Clipboard copy button */
+.tk-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 0 9px;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  outline: none;
+}
+.tk-copy-btn:hover {
+  background: var(--bg-btn-hover);
+  color: var(--text);
+  border-color: var(--border-light);
+}
+.tk-copy-btn:focus-visible { outline: 2px solid var(--accent); }
+
+/* Horizontal rule divider inside panels */
+.tk-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 10px 0 12px;
+}
+
+/* Empty-state placeholder inside panel */
+.tk-placeholder {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 24px 10px;
+}
+
+/* Password strength meter */
+.pc-meter-bar {
+  height: 5px;
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 6px 0 8px;
+}
+.pc-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 10px;
+  transition: width .35s ease, background .35s ease;
+}
+
 /* ── Dashboard v3.2 additions ──────────────────────────────── */
 .dash-tip-card {
   background: var(--bg-input);
