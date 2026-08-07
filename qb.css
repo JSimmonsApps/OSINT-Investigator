@@ -42,7 +42,7 @@
 
 .qb-cat-btn.active {
   background: var(--accent-dim);
-  border-color: rgba(31,111,235,.4);
+  border-color: rgba(192,21,42,.4);
   color: var(--accent-light);
   font-weight: 600;
 }
@@ -117,7 +117,7 @@
 }
 
 .qb-preview-box.has-query {
-  border-color: rgba(31,111,235,.35);
+  border-color: rgba(192,21,42,.35);
 }
 
 .qb-preview-placeholder {
@@ -158,7 +158,7 @@
 
 .qb-op-btn:hover {
   background: var(--accent-dim);
-  border-color: rgba(31,111,235,.4);
+  border-color: rgba(192,21,42,.4);
   color: #fff;
 }
 
@@ -329,7 +329,7 @@
   flex-shrink: 0;
   outline: none;
 }
-.sq-launch:hover { background: var(--accent-dim); border-color: rgba(31,111,235,.4); }
+.sq-launch:hover { background: var(--accent-dim); border-color: rgba(192,21,42,.4); }
 
 .sq-del {
   background: none;
@@ -383,7 +383,7 @@
 .qb-tip-code {
   font-family: 'JetBrains Mono', monospace;
   color: var(--accent-light);
-  background: rgba(31,111,235,.1);
+  background: rgba(192,21,42,.1);
   padding: 1px 5px;
   border-radius: 3px;
   font-size: 10.5px;

@@ -17,9 +17,9 @@
   --border:      #293040;
   --border-light:#364255;
 
-  --accent:      #1f6feb;
-  --accent-light:#388bfd;
-  --accent-dim:  rgba(31,111,235,.13);
+  --accent:      #c0152a;
+  --accent-light:#e84055;
+  --accent-dim:  rgba(192,21,42,.13);
 
   --text:        #dce5ef;
   --text-muted:  #7a8394;
@@ -145,7 +145,7 @@ body {
 
 .tab-btn.active {
   background: var(--accent-dim);
-  border-color: rgba(31,111,235,.35);
+  border-color: rgba(192,21,42,.35);
   color: var(--accent-light);
   font-weight: 600;
 }
@@ -245,16 +245,16 @@ body {
   border-radius: 50%;
   background: var(--accent);
   flex-shrink: 0;
-  animation: pulse-blue 2.5s infinite;
+  animation: pulse-red 2.5s infinite;
 }
 .label-dot-green  { background: var(--green);    animation: pulse-green 2.5s infinite; }
 .label-dot-yellow { background: var(--yellow);   animation: none; }
 .label-dot-purple { background: var(--purple);   animation: pulse-purple 2.5s infinite; }
 .label-dot-dim    { background: var(--text-dim); animation: none; }
 
-@keyframes pulse-blue {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(31,111,235,.5); }
-  50%       { box-shadow: 0 0 0 3px rgba(31,111,235,0); }
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,21,42,.5); }
+  50%       { box-shadow: 0 0 0 3px rgba(192,21,42,0); }
 }
 @keyframes pulse-green {
   0%, 100% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
@@ -404,7 +404,7 @@ body {
 
 .field:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(31,111,235,.18);
+  box-shadow: 0 0 0 2px rgba(192,21,42,.18);
 }
 
 .field-sm {
@@ -426,7 +426,7 @@ select.field {
   font-size: 11.5px;
   color: var(--accent-light);
   background: var(--accent-dim);
-  border: 1px solid rgba(31,111,235,.22);
+  border: 1px solid rgba(192,21,42,.22);
   border-radius: var(--radius);
   padding: 7px 12px;
   margin-top: 10px;
@@ -475,11 +475,11 @@ select.field {
 
 .qa-btn-accent {
   background: var(--accent-dim);
-  border-color: rgba(31,111,235,.35);
+  border-color: rgba(192,21,42,.35);
   color: var(--accent-light);
 }
 .qa-btn-accent:hover {
-  background: rgba(31,111,235,.22);
+  background: rgba(192,21,42,.22);
   border-color: var(--accent);
   color: #fff;
 }
@@ -526,7 +526,7 @@ select.field {
 
 .search-btn:hover {
   background: var(--bg-btn-hover);
-  border-color: rgba(56,139,253,.5);
+  border-color: rgba(232,64,85,.5);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -909,7 +909,7 @@ select.field {
   letter-spacing: .4px;
   background: var(--accent-dim);
   color: var(--accent-light);
-  border: 1px solid rgba(31,111,235,.28);
+  border: 1px solid rgba(192,21,42,.28);
   padding: 2px 7px;
   border-radius: 10px;
   margin-left: auto;
@@ -1043,14 +1043,14 @@ select.field {
 .qa-panel-btn-accent {
   grid-column: 1 / -1;
   background: var(--accent-dim);
-  border-color: rgba(31,111,235,.35);
+  border-color: rgba(192,21,42,.35);
   color: var(--accent-light);
   justify-content: center;
   font-weight: 600;
 }
 
 .qa-panel-btn-accent:hover {
-  background: rgba(31,111,235,.2);
+  background: rgba(192,21,42,.2);
   border-color: var(--accent);
   color: #e8f0fe;
 }
@@ -1062,7 +1062,7 @@ select.field {
   letter-spacing: .6px;
   color: var(--accent-light);
   background: var(--accent-dim);
-  border: 1px solid rgba(31,111,235,.35);
+  border: 1px solid rgba(192,21,42,.35);
   border-radius: 8px;
   padding: 2px 6px;
 }

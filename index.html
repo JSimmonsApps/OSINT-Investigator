@@ -3,14 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OSINT Investigator v3.1.1 — Canadian Intelligence Platform</title>
-    <meta name="description" content="OSINT Investigator v3.1.1 — Canadian Intelligence Platform. People, Corporate, Legal, Media, Technical, Open Web &amp; Query Builder intelligence in one place." />
+    <title>OSINT Investigator v3.2 — Canadian Intelligence Workstation</title>
+    <meta name="description" content="OSINT Investigator v3.2 — Canadian Intelligence Workstation. People, Corporate, Legal, Technical, Query Builder, Resource Center and Investigator Toolkit." />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./style.css" />
     <link rel="stylesheet" href="./qb.css" />
+    <link rel="stylesheet" href="./v32.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   </head>
   <body>
     <div class="app-container" id="app">
@@ -20,7 +22,13 @@
         <img src="./logo.jpg" alt="OSINT Investigator Logo" class="header-logo" />
         <div class="header-subtitle">
           Canadian Intelligence Platform &nbsp;&bull;&nbsp;
-          <span class="version-badge">v3.1.1</span>
+          <span class="version-badge">v3.2</span>
+        </div>
+        <div class="global-search-wrap">
+          <svg class="gsr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="global-search" type="text" class="global-search-input" placeholder="Search all tools, resources &amp; tabs…" autocomplete="off" aria-label="Global search" />
+          <button id="global-search-clear" class="gsr-clear" aria-label="Clear search" style="display:none">✕</button>
+          <div id="global-search-results" class="gsr-dropdown" role="listbox" aria-label="Search results"></div>
         </div>
       </header>
 
@@ -34,6 +42,8 @@
         <button class="tab-btn" data-tab="open-web"  role="tab" aria-selected="false">Open Web</button>
         <button class="tab-btn" data-tab="technical" role="tab" aria-selected="false">Technical</button>
         <button class="tab-btn" data-tab="qb"        role="tab" aria-selected="false">Query Builder</button>
+        <button class="tab-btn" data-tab="resources"  role="tab" aria-selected="false">Resources</button>
+        <button class="tab-btn" data-tab="toolkit"    role="tab" aria-selected="false">Toolkit</button>
       </nav>
 
       <!-- ═══════════════════════════════════════════════════════
@@ -131,7 +141,7 @@
           <div class="status-grid">
             <div class="status-item">
               <span class="status-label">Version</span>
-              <span class="status-value accent">3.1.1</span>
+              <span class="status-value accent">3.2</span>
             </div>
             <div class="status-item">
               <span class="status-label">Platform</span>
@@ -240,6 +250,47 @@
             <button class="module-btn" disabled>Relationship Mapping</button>
             <button class="module-btn" disabled>Auto Report Generator</button>
           </div>
+        </section>
+
+        <!-- v3.2: Rotating Investigator Tip -->
+        <section class="card" id="dash-rotating-tip-card">
+          <div class="section-label">
+            <span class="label-dot label-dot-yellow"></span>INVESTIGATOR TIP
+          </div>
+          <div id="dash-rotating-tip" class="dash-rotating-tip"><!-- populated by v32.js --></div>
+        </section>
+
+        <!-- v3.2: Featured IRC Resources -->
+        <section class="card">
+          <div class="section-header-row">
+            <div class="section-label" style="margin-bottom:0">
+              <span class="label-dot label-dot-green"></span>FEATURED RESOURCES
+            </div>
+            <button class="link-btn" data-goto="resources">View All →</button>
+          </div>
+          <div id="dash-featured-grid" class="dash-featured-grid"><!-- populated by v32.js --></div>
+        </section>
+
+        <!-- v3.2: Favourite IRC Resources -->
+        <section class="card" id="dash-irc-favs-card">
+          <div class="section-header-row">
+            <div class="section-label" style="margin-bottom:0">
+              <span class="label-dot label-dot-yellow"></span>⭐ FAVOURITE RESOURCES
+            </div>
+            <button class="link-btn" data-goto="resources">Browse →</button>
+          </div>
+          <div id="dash-irc-favs" class="fav-list"><!-- populated by v32.js --></div>
+        </section>
+
+        <!-- v3.2: Recently Used IRC Resources -->
+        <section class="card" id="dash-recently-used-card">
+          <div class="section-header-row">
+            <div class="section-label" style="margin-bottom:0">
+              <span class="label-dot"></span>RECENTLY USED RESOURCES
+            </div>
+            <button class="link-btn" id="btn-clear-irc-recent">Clear</button>
+          </div>
+          <div id="dash-recently-used" class="history-list"><!-- populated by v32.js --></div>
         </section>
 
       </div><!-- /tab-dashboard -->
@@ -1179,10 +1230,58 @@
 
       </div><!-- /tab-qb -->
 
+      <!-- ═══════════════════════════════════════════════════════
+           TAB: INTELLIGENCE RESOURCE CENTER
+           ═══════════════════════════════════════════════════════ -->
+      <div class="tab-pane" id="tab-resources" role="tabpanel">
+
+        <section class="card">
+          <div class="section-label">
+            <span class="label-dot label-dot-green"></span>INTELLIGENCE RESOURCE CENTER
+          </div>
+          <p style="color:var(--text-dim);font-size:0.82rem;margin:0 0 12px">Curated Canadian OSINT resources, tools, communities &amp; references. Click a card to open; ⭐ to favourite.</p>
+          <!-- Category filter tabs -->
+          <div id="irc-cat-tabs" class="irc-cat-tabs" role="tablist" aria-label="Resource categories">
+            <!-- populated by v32.js -->
+          </div>
+          <!-- Search -->
+          <input id="irc-search" type="text" class="field field-sm" placeholder="Search resources…" autocomplete="off" style="margin:8px 0 10px" />
+          <!-- Resource card grid -->
+          <div id="irc-grid" class="irc-grid">
+            <!-- populated by v32.js -->
+          </div>
+        </section>
+
+      </div><!-- /tab-resources -->
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB: INVESTIGATOR TOOLKIT
+           ═══════════════════════════════════════════════════════ -->
+      <div class="tab-pane" id="tab-toolkit" role="tabpanel">
+
+        <section class="card">
+          <div class="section-label">
+            <span class="label-dot label-dot-green"></span>INVESTIGATOR TOOLKIT
+          </div>
+          <p style="color:var(--text-dim);font-size:0.82rem;margin:0 0 14px">Browser-side utilities — no data leaves your device.</p>
+          <div class="toolkit-wrap">
+            <!-- Tool list sidebar -->
+            <div id="tk-tool-list" class="toolkit-tool-list">
+              <!-- populated by v32.js -->
+            </div>
+            <!-- Active tool panel -->
+            <div id="tk-panel" class="toolkit-panel">
+              <div class="tk-placeholder">← Select a tool from the list</div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /tab-toolkit -->
+
       <!-- ─── Footer ──────────────────────────────────────────── -->
       <footer class="app-footer">
         <div class="footer-brand">OSINT Investigator</div>
-        <div class="footer-sub">Version 3.1.1 &nbsp;&bull;&nbsp; Stability &amp; Investigator Toolkit Update</div>
+        <div class="footer-sub">Version 3.2 &nbsp;&bull;&nbsp; Intelligence Resource Center &bull; Canadian Intelligence Workstation</div>
         <div class="footer-credit">Created by Josh Simmons</div>
       </footer>
 
@@ -1197,5 +1296,6 @@
     </div>
 
     <script src="./script.js"></script>
+    <script src="./v32.js"></script>
   </body>
 </html>
