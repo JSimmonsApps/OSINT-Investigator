@@ -1180,10 +1180,10 @@ function renderToolPanel(toolId, panelEl) {
         <label><input type="checkbox" id="pg-num"   checked /> Numbers</label>
         <label><input type="checkbox" id="pg-sym"   checked /> Symbols</label>
       </div>
-      <button class="tk-btn" id="pg-gen">Generate</button>
+      <button class="tk-btn" id="pg-gen">⚡ Generate Password</button>
       <div class="tk-output-wrap">
-        <code class="tk-output" id="pg-out">—</code>
-        <button class="tk-copy-btn" data-copy-from="pg-out" title="Copy">⎘</button>
+        <code class="tk-output tk-output-placeholder" id="pg-out">Click Generate to create a password</code>
+        <button class="tk-copy-btn" data-copy-from="pg-out" title="Copy to clipboard">⎘</button>
       </div>`,
 
     passcheck: `
@@ -1378,17 +1378,21 @@ function bindToolListeners(toolId, panelEl) {
 
   if (toolId === 'passgen') {
     $('pg-gen').addEventListener('click', () => {
-      const len = parseInt($('pg-len').value) || 20;
+      const out = $('pg-out');
+      const len = Math.max(4, Math.min(128, parseInt($('pg-len').value) || 20));
       const pools = [];
       if ($('pg-upper').checked) pools.push('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
       if ($('pg-lower').checked) pools.push('abcdefghijklmnopqrstuvwxyz');
       if ($('pg-num').checked)   pools.push('0123456789');
       if ($('pg-sym').checked)   pools.push('!@#$%^&*()_+-=[]{}|;:,.<>?');
-      if (!pools.length) { $('pg-out').textContent = 'Select at least one character type.'; return; }
+      if (!pools.length) { out.textContent = 'Select at least one character type.'; return; }
       const all = pools.join('');
       const arr = new Uint32Array(len);
       crypto.getRandomValues(arr);
-      $('pg-out').textContent = Array.from(arr).map(n => all[n % all.length]).join('');
+      const pw = Array.from(arr).map(n => all[n % all.length]).join('');
+      out.textContent = pw;
+      out.classList.remove('tk-output-placeholder');
+      out.classList.add('has-value');
     });
   }
 
