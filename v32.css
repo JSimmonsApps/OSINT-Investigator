@@ -383,6 +383,114 @@
   font-style: italic;
 }
 
+/* ── v3.2.1: Card meta row (difficulty + category) ────────── */
+.irc-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.irc-diff-badge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 2px;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+.irc-diff-beginner     { background: rgba(63,185,80,.15);  color: #3fb950; border: 1px solid rgba(63,185,80,.3); }
+.irc-diff-intermediate { background: rgba(210,153,34,.15); color: #d29922; border: 1px solid rgba(210,153,34,.3); }
+.irc-diff-advanced     { background: rgba(192,21,42,.15);  color: var(--accent-light); border: 1px solid rgba(192,21,42,.3); }
+
+.irc-card-cat-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* ── v3.2.1: Best-for line ─────────────────────────────────── */
+.irc-card-bestfor {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  padding: 4px 0 0;
+  border-top: 1px solid var(--border);
+  margin-top: 1px;
+}
+.irc-card-bestfor strong {
+  color: var(--silver);
+  font-weight: 600;
+}
+
+/* ── v3.2.1: Card actions row ──────────────────────────────── */
+.irc-card-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.irc-card-launch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  user-select: none;
+  outline: none;
+  flex: 1;
+  justify-content: center;
+}
+.irc-card-launch:hover {
+  background: var(--accent-dim);
+  border-color: rgba(192,21,42,.4);
+  color: var(--accent-light);
+}
+.irc-card-launch:focus-visible { outline: 2px solid var(--accent); }
+
+.irc-card-github {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  user-select: none;
+  outline: none;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.irc-card-github:hover {
+  background: rgba(88,166,255,.1);
+  border-color: rgba(88,166,255,.35);
+  color: #58a6ff;
+}
+.irc-card-github:focus-visible { outline: 2px solid #58a6ff; }
+
+/* ── v3.2.1: IRC grid — single column on narrow screens ───── */
+@media (max-width: 380px) {
+  .irc-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Investigator Toolkit ──────────────────────────────────── */
 .toolkit-layout {
   display: flex;
