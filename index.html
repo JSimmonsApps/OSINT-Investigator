@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OSINT Investigator v3.2.1 — Canadian Intelligence Workstation</title>
-    <meta name="description" content="OSINT Investigator v3.2.1 — Canadian Intelligence Workstation. People, Corporate, Legal, Technical, Query Builder, Resource Center and Investigator Toolkit." />
+    <title>OSINT Investigator v3.3 — Intelligence &amp; Investigation Workflow</title>
+    <meta name="description" content="OSINT Investigator v3.3 — Intelligence &amp; Investigation Workflow. Canadian Intelligence Workstation. People, Corporate, Legal, Technical, Query Builder, Resource Center, Investigator Toolkit and Investigation Workspace." />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./style.css" />
     <link rel="stylesheet" href="./qb.css" />
     <link rel="stylesheet" href="./v32.css" />
+    <link rel="stylesheet" href="./v33.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   </head>
   <body>
@@ -21,8 +22,8 @@
       <header class="app-header">
         <img src="./logo.jpg" alt="OSINT Investigator Logo" class="header-logo" />
         <div class="header-subtitle">
-          Canadian Intelligence Platform &nbsp;&bull;&nbsp;
-          <span class="version-badge">v3.2.1</span>
+          Intelligence &amp; Investigation Workflow &nbsp;&bull;&nbsp;
+          <span class="version-badge">v3.3</span>
         </div>
         <div class="global-search-wrap">
           <svg class="gsr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -42,8 +43,9 @@
         <button class="tab-btn" data-tab="open-web"  role="tab" aria-selected="false">Open Web</button>
         <button class="tab-btn" data-tab="technical" role="tab" aria-selected="false">Technical</button>
         <button class="tab-btn" data-tab="qb"        role="tab" aria-selected="false">Query Builder</button>
-        <button class="tab-btn" data-tab="resources"  role="tab" aria-selected="false">Resources</button>
-        <button class="tab-btn" data-tab="toolkit"    role="tab" aria-selected="false">Toolkit</button>
+        <button class="tab-btn" data-tab="resources"      role="tab" aria-selected="false">Resources</button>
+        <button class="tab-btn" data-tab="toolkit"        role="tab" aria-selected="false">Toolkit</button>
+        <button class="tab-btn" data-tab="investigations" role="tab" aria-selected="false">Investigations</button>
       </nav>
 
       <!-- ═══════════════════════════════════════════════════════
@@ -1278,14 +1280,24 @@
 
       </div><!-- /tab-toolkit -->
 
+      <!-- ═══════════════════════════════════════════════════════
+           TAB: INVESTIGATIONS
+           ═══════════════════════════════════════════════════════ -->
+      <div class="tab-pane" id="tab-investigations" role="tabpanel">
+        <div id="inv-root"><!-- populated by v33.js --></div>
+      </div><!-- /tab-investigations -->
+
       <!-- ─── Footer ──────────────────────────────────────────── -->
       <footer class="app-footer">
         <div class="footer-brand">OSINT Investigator</div>
-        <div class="footer-sub">Version 3.2.1 &nbsp;&bull;&nbsp; Intelligence Resource Center &bull; Canadian Intelligence Workstation</div>
+        <div class="footer-sub">Version 3.3 &nbsp;&bull;&nbsp; Intelligence &amp; Investigation Workflow &bull; Canadian Intelligence Workstation</div>
         <div class="footer-credit">Created by Josh Simmons</div>
       </footer>
 
     </div><!-- /app -->
+
+    <!-- Investigation Modal Overlay -->
+    <div class="inv-modal-overlay" id="inv-modal-overlay"></div>
 
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
@@ -1297,5 +1309,6 @@
 
     <script src="./script.js"></script>
     <script src="./v32.js"></script>
+    <script src="./v33.js"></script>
   </body>
 </html>
