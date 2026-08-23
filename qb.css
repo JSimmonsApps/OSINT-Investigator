@@ -1,0 +1,390 @@
+/* ============================================================
+   OSINT Investigator v3.1.1 — qb.css
+   Query Builder, Favorites, Enhanced History additions
+   ============================================================ */
+
+/* ── Query Builder Fields Grid ─────────────────────────────── */
+.qb-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+/* ── Template Category Tabs ────────────────────────────────── */
+.qb-cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.qb-cat-btn {
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  user-select: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.qb-cat-btn:hover {
+  background: var(--bg-btn-hover);
+  color: var(--text);
+  border-color: var(--border-light);
+}
+
+.qb-cat-btn.active {
+  background: var(--accent-dim);
+  border-color: rgba(192,21,42,.4);
+  color: var(--accent-light);
+  font-weight: 600;
+}
+
+.qb-cat-btn:focus-visible { outline: 2px solid var(--accent); }
+
+/* ── Template List ─────────────────────────────────────────── */
+.qb-template-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.qb-tpl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px 10px;
+  text-align: left;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+  user-select: none;
+  outline: none;
+}
+
+.qb-tpl-btn:hover {
+  background: var(--bg-btn-hover);
+  border-color: rgba(56,139,253,.45);
+  transform: translateY(-1px);
+}
+
+.qb-tpl-btn:active { transform: scale(.98); }
+.qb-tpl-btn:focus-visible { outline: 2px solid var(--accent); }
+
+.qb-tpl-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.qb-tpl-preview {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ── Query Preview Box ─────────────────────────────────────── */
+.qb-preview-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--accent-light);
+  word-break: break-all;
+  line-height: 1.6;
+  min-height: 48px;
+  margin-bottom: 10px;
+  transition: border-color var(--transition);
+}
+
+.qb-preview-box.has-query {
+  border-color: rgba(192,21,42,.35);
+}
+
+.qb-preview-placeholder {
+  color: var(--text-dim);
+  font-style: italic;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.qb-preview-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Custom Query Builder ──────────────────────────────────── */
+.qb-operator-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.qb-op-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-light);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  user-select: none;
+  outline: none;
+}
+
+.qb-op-btn:hover {
+  background: var(--accent-dim);
+  border-color: rgba(192,21,42,.4);
+  color: #fff;
+}
+
+.qb-op-btn:focus-visible { outline: 2px solid var(--accent); }
+
+.qb-custom-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* ── Favorites ─────────────────────────────────────────────── */
+.fav-count-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(210,153,34,.12);
+  border: 1px solid rgba(210,153,34,.3);
+  color: var(--yellow);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.fav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.fav-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(210,153,34,.05);
+  border: 1px solid rgba(210,153,34,.2);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  animation: slide-in .15s ease;
+}
+
+.fav-item:hover {
+  background: rgba(210,153,34,.1);
+  border-color: rgba(210,153,34,.4);
+}
+
+.fav-star {
+  color: var(--yellow);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.fav-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fav-query {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.fav-del {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
+  outline: none;
+}
+
+.fav-del:hover {
+  color: var(--red);
+  background: rgba(248,81,73,.1);
+}
+
+/* ── Enhanced History Item ─────────────────────────────────── */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-rerun {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.hist-star-btn, .hist-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
+  outline: none;
+}
+
+.hist-star-btn { color: var(--text-dim); }
+.hist-star-btn:hover { color: var(--yellow); background: rgba(210,153,34,.1); }
+.hist-star-btn.starred { color: var(--yellow); }
+
+.hist-del-btn { color: var(--text-dim); }
+.hist-del-btn:hover { color: var(--red); background: rgba(248,81,73,.1); }
+
+/* ── Saved Queries ─────────────────────────────────────────── */
+.saved-query-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  animation: slide-in .15s ease;
+}
+
+.sq-label {
+  font-size: 11.5px;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sq-launch {
+  background: var(--bg-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-light);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+  outline: none;
+}
+.sq-launch:hover { background: var(--accent-dim); border-color: rgba(192,21,42,.4); }
+
+.sq-del {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+  flex-shrink: 0;
+  outline: none;
+}
+.sq-del:hover { color: var(--red); }
+
+/* ── History Filter ────────────────────────────────────────── */
+.history-filter {
+  width: 100%;
+}
+
+/* ── Investigator Tips ─────────────────────────────────────── */
+.qb-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qb-tip {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+}
+
+.qb-tip-q {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.qb-tip-a {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.qb-tip-code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-light);
+  background: rgba(192,21,42,.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10.5px;
+}
